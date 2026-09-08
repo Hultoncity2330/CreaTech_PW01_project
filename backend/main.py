@@ -73,6 +73,9 @@ def get_article(article_name: str) -> Article:
 def create_article(new_article: NewArticle):
     name = new_article.name
     content = new_article.content
+
+    if len(name) > 50:
+        raise HTTPException(401, "Too long title")
     
     new_article_file = articles_folder / (name + ".md")
     new_article_file.write_text(content, encoding="utf-8")
