@@ -1,8 +1,9 @@
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 import markdown2
+
+from models import Article, ArticleInfo, NewArticle
 
 
 articles_folder = Path(__file__).parent.parent / "articles"
@@ -15,23 +16,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-class Article(BaseModel):
-    """Article including its content"""
-    name: str = Field(description = "The name of the article", examples = ["Alphabet"])
-    content: str = Field(description = "Content in HTML of the article")
-    articleUrl: str
-    source: str = Field(description = "Content in Markdown of the article")
-
-
-class ArticleInfo(BaseModel):
-    name: str
-    articleUrl: str
-
-
-class NewArticle(BaseModel):
-    name: str
-    content: str
 
 
 @app.get("/")
@@ -75,9 +59,16 @@ def create_article(new_article: NewArticle):
     content = new_article.content
 
     if len(name) > 50:
-        raise HTTPException(401, "Too long title")
-    
+        raise HTTPException(400, "Too long title")
+    if len(name) < 1:
+        raise HTTPException(400, "Too short title")
+    if not all(char.isalnum() or char in " _-" for char in name):
+        raise HTTPException(400, "The name is invalid")
+
     new_article_file = articles_folder / (name + ".md")
+    if new_article_file.exists():
+        raise HTTPException(400, "An article with this name already exists")
+
     new_article_file.write_text(content, encoding="utf-8")
 
     return {
