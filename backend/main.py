@@ -1,9 +1,11 @@
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import markdown2
 
+
+articles_folder = Path(__file__).parent.parent / "articles"
 
 app = FastAPI()
 
@@ -17,17 +19,15 @@ app.add_middleware(
 class Article(BaseModel):
     """Article including its content"""
     name: str = Field(description = "The name of the article", examples = ["Alphabet"])
-    content: str
+    content: str = Field(description = "Content in HTML of the article")
     articleUrl: str
-    source: str
+    source: str = Field(description = "Content in Markdown of the article")
 
 
 class ArticleInfo(BaseModel):
     name: str
     articleUrl: str
 
-
-articles_folder = Path(__file__).parent.parent / "articles"
 
 
 @app.get("/")
@@ -51,9 +51,13 @@ def list_articles() -> list[dict[str, str]]:
     return articles
 
 @app.get("/article/{article_name}")
-def get_article(article_name: str) -> dict[str, str]:
-    file_path = articles_folder / f"{article_name}.md"
-    markdown_content = file_path.read_text(encoding="utf-8")
+def get_article(article_name: str) -> Article:
+    article_path = articles_folder / f"{article_name}.md"
+
+    if not article_path.exists():
+        raise HTTPException(404, "This article doesn't exist.")
+
+    markdown_content = article_path.read_text(encoding="utf-8")
     html_content = markdown2.markdown(markdown_content)
     return {"name": article_name,
             "articleUrl": f"/article/{article_name}",
