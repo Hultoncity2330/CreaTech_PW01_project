@@ -21,6 +21,7 @@ class Article(BaseModel):
     articleUrl: str
     source: str
 
+
 class ArticleInfo(BaseModel):
     name: str
     articleUrl: str
