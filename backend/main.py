@@ -29,6 +29,10 @@ class ArticleInfo(BaseModel):
     articleUrl: str
 
 
+class NewArticle(BaseModel):
+    name: str
+    content: str
+
 
 @app.get("/")
 def root() -> dict[str, str]:
@@ -63,3 +67,18 @@ def get_article(article_name: str) -> Article:
             "articleUrl": f"/article/{article_name}",
             "content": html_content,
             "source": markdown_content}
+
+
+@app.post("/create")
+def create_article(new_article: NewArticle):
+    name = new_article.name
+    content = new_article.content
+    
+    new_article_file = articles_folder / (name + ".md")
+    new_article_file.write_text(content, encoding="utf-8")
+
+    return {
+        "name": name,
+        "articleUrl": f"/article/{name}",
+        "content": content
+    }
