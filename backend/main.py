@@ -1,7 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import markdown2
 
 
@@ -15,7 +15,8 @@ app.add_middleware(
 )
 
 class Article(BaseModel):
-    name: str
+    """Article including its content"""
+    name: str = Field(description = "The name of the article", examples = ["Alphabet"])
     content: str
     articleUrl: str
     source: str
