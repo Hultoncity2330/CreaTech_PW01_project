@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import markdown2
 
 from models import Article, ArticleInfo, NewArticle
+from articles import article_func
 
 
 articles_folder = Path(__file__).parent.parent / "articles"
@@ -40,17 +41,13 @@ def list_articles() -> list[dict[str, str]]:
 
 @app.get("/article/{article_name}")
 def get_article(article_name: str) -> Article:
-    article_path = articles_folder / f"{article_name}.md"
-
-    if not article_path.exists():
-        raise HTTPException(404, "This article doesn't exist.")
-
-    markdown_content = article_path.read_text(encoding="utf-8")
-    html_content = markdown2.markdown(markdown_content)
-    return {"name": article_name,
-            "articleUrl": f"/article/{article_name}",
-            "content": html_content,
-            "source": markdown_content}
+    markdown_content, html_content = article_func(article_name)
+    return Article (
+        name = article_name,
+        articleUrl = f"/article/{article_name}",
+        content = html_content,
+        source = markdown_content
+    )
 
 
 @app.post("/create")
