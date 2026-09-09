@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article, ArticleInfo, NewArticle, EditArticle, DeleteArticle
+from models import Article, ArticleInfo, NewArticle, EditArticle, DeleteArticle, Comment, NewComment
 from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article
+from comments import get_comments, add_comment
 
 
 app = FastAPI()
@@ -15,7 +16,7 @@ app.add_middleware(
 )
 
 
-#--------------------------------------------------#
+#--------------------------< Articles >------------------------#
 
 
 @app.get("/")
@@ -81,4 +82,21 @@ def delete_article_route(article_name: str) -> DeleteArticle:
 
     except FileNotFoundError:
         raise HTTPException(404, "This article doesn't exist.")
+
+
+#--------------------------< Comments >------------------------#
+
+
+@app.get("/comments")
+def list_comments() -> list[Comment]:
+    return get_comments()
+
+
+@app.post("/comments")
+def create_comment(new_comment: NewComment) -> Comment:
+    try:
+        return add_comment(new_comment)
+
+    except ValueError:
+        raise HTTPException(400, "The comment cannot be empty.")
 

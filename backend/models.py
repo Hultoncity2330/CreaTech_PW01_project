@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field
 
 
+#--------------------------< Articles >------------------------#
+
+
 class ArticleInfo(BaseModel):
     name: str
     articleUrl: str
@@ -36,5 +39,17 @@ class DeleteArticle(BaseModel):
     message: str
 
 
-#--------------------------------------------------#
+#--------------------------< Comments >------------------------#
+
+
+class Comment(BaseModel):
+    id: str
+    author: str | None = None
+    content: str = Field(min_length = 1, max_length = 1000)
+
+
+class NewComment(BaseModel):
+    author: str | None = None
+    content: str = Field(min_length = 1, max_length = 1000)
+
 
