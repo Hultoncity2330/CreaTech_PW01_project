@@ -73,7 +73,7 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
             raise HTTPException(404, "This article doesn't exist.")
 
 
-@app.get("/article/{article_name}/delete")
+@app.delete("/article/{article_name}/delete")
 def delete_article_route(article_name: str) -> DeleteArticle:
     try:
         delete_article(article_name)

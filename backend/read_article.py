@@ -5,8 +5,6 @@ ARTICLES_FOLDER = Path(__file__).parent.parent / "articles"
 def read_article() -> str:
     """Demande un article jusqu'à ce qu'un fichier existant soit choisi."""
 
-    
-
     while True:
         filename = input("Nom de l'article : ")
 
