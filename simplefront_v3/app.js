@@ -1,9 +1,10 @@
-/* global Vue, APP_CONFIG, articleApi */
+/* global Vue, APP_CONFIG, articleApi, CommentsGuide, ArticleMetadataGuide, DeleteArticleGuide, ApiConsole */
 
 // Vue runs directly in the browser. Edit this file, save it, then refresh.
 const { computed, createApp, ref } = Vue
 
 createApp({
+  components: { CommentsGuide, ArticleMetadataGuide, DeleteArticleGuide, ApiConsole },
   /**
    * Prepares the state and functions used by index.html.
    */
@@ -16,12 +17,23 @@ createApp({
     const page = ref('list')
     const articles = ref([])
     const currentArticle = ref(null)
+    const deleteDialog = ref(null)
+    const articleToDelete = ref(null)
+    const deleting = ref(false)
+    const deleteError = ref('')
     const loading = ref(false)
     const saving = ref(false)
     const error = ref('')
     const submitError = ref('')
     const draft = ref('')
     const newArticle = ref({ name: '', content: '' })
+    const metadata = ref({ author: '', tags: '', category: '' })
+    const comments = ref([])
+    const commentsUnavailable = ref(false)
+    const newComment = ref({ author: '', content: '' })
+    const postingComment = ref(false)
+    const commentError = ref('')
+    const commentSuccess = ref('')
 
     const otherArticles = computed(() =>
       articles.value.filter(
@@ -39,6 +51,15 @@ createApp({
      */
     function getArticleUrl(articleName) {
       return articleName.trim().replace(/\s+/g, '_')
+    }
+
+    /** Converts form metadata to JSON; empty values clear existing metadata. */
+    function getMetadata() {
+      return {
+        author: metadata.value.author.trim(),
+        category: metadata.value.category.trim(),
+        tags: [...new Set(metadata.value.tags.split(',').map((tag) => tag.trim()).filter(Boolean))],
+      }
     }
 
     /**
@@ -125,6 +146,64 @@ createApp({
     // FORM ACTIONS
     // POST requests are kept separate from page loading.
     // ---------------------------------------------------------------------
+    /** Checks the fields needed to display and identify a comment. */
+    function isComment(comment) {
+      return comment != null &&
+        (typeof comment.id === 'string' || typeof comment.id === 'number') &&
+        typeof comment.content === 'string'
+    }
+
+    /** Loads site-wide comments, independently of the article list. */
+    async function loadComments() {
+      commentsUnavailable.value = false
+      try {
+        const data = await articleApi.listComments()
+        if (!Array.isArray(data) || !data.every(isComment)) {
+          throw new Error('GET /comments must return an array of { id, content, author? }.')
+        }
+        comments.value = data
+      } catch (cause) {
+        if (cause.status === 404 || cause.status === 405) {
+          commentsUnavailable.value = true
+          return
+        }
+        throw cause
+      }
+    }
+
+    /** Adds the POST response to the list and clears the form after success. */
+    async function postComment() {
+      if (postingComment.value) return
+      commentError.value = ''
+      commentSuccess.value = ''
+      const content = newComment.value.content.trim()
+      if (!content) {
+        commentError.value = 'Please write a comment.'
+        return
+      }
+
+      postingComment.value = true
+      try {
+        const comment = await articleApi.createComment({
+          author: newComment.value.author.trim(),
+          content,
+        })
+        if (!isComment(comment)) {
+          throw new Error('POST /comments must return the stored comment with id and content.')
+        }
+        comments.value.push(comment)
+        newComment.value = { author: '', content: '' }
+        commentSuccess.value = 'Your comment has been posted.'
+      } catch (cause) {
+        commentError.value = getErrorMessage(cause)
+        if (cause.status === 404 || cause.status === 405) {
+          commentsUnavailable.value = true
+        }
+      } finally {
+        postingComment.value = false
+      }
+    }
+
     /**
      * Creates an article and redirects using the POST response.
      */
@@ -133,7 +212,7 @@ createApp({
       submitError.value = ''
 
       try {
-        const createdArticle = await articleApi.create(newArticle.value)
+        const createdArticle = await articleApi.create({ ...newArticle.value, ...getMetadata() })
 
         if (
           typeof createdArticle?.articleUrl !== 'string' ||
@@ -172,7 +251,7 @@ createApp({
 
       try {
         const articleUrl = getArticleUrl(currentArticle.value.name)
-        await articleApi.update(articleUrl, draft.value)
+        await articleApi.update(articleUrl, { content: draft.value, ...getMetadata() })
 
         window.location.hash = getArticleLink(articleUrl)
       } catch (cause) {
@@ -186,10 +265,42 @@ createApp({
     // ROUTING
     // The part after # selects the page. Example: #/article/My_article
     // ---------------------------------------------------------------------
+    /** Opens a modal without sending a request. */
+    function confirmDelete() {
+      if (!currentArticle.value || deleting.value) return
+      deleteError.value = ''
+      articleToDelete.value = currentArticle.value
+      deleteDialog.value.showModal()
+    }
+
+    /** Closes the confirmation without deleting anything. */
+    function cancelDelete() {
+      if (!deleting.value) deleteDialog.value.close()
+    }
+
+    /** Deletes the confirmed article, then opens a freshly loaded list. */
+    async function deleteArticle() {
+      if (deleting.value || !articleToDelete.value) return
+      deleting.value = true
+      deleteError.value = ''
+      try {
+        await articleApi.remove(articleToDelete.value.articleUrl)
+        articles.value = []
+        deleteDialog.value.close()
+        window.location.hash = '#/'
+      } catch (cause) {
+        deleteError.value = getErrorMessage(cause)
+      } finally {
+        deleting.value = false
+      }
+    }
+
     /**
      * Selects the current page from the URL and loads the required data.
      */
     async function loadCurrentPage() {
+      if (deleteDialog.value?.open) deleteDialog.value.close()
+      deleteError.value = ''
       loading.value = true
       error.value = ''
       submitError.value = ''
@@ -217,9 +328,18 @@ createApp({
             }
 
             draft.value = currentArticle.value.source
+            metadata.value = {
+              author: currentArticle.value.author ?? '',
+              category: currentArticle.value.category ?? '',
+              tags: (currentArticle.value.tags ?? []).join(', '),
+            }
           }
+        } else if (parts[0] === 'comments') {
+          page.value = 'comments'
+          await loadComments()
         } else if (parts[0] === 'create' && features.create) {
           page.value = 'create'
+          metadata.value = { author: '', tags: '', category: '' }
         } else {
           page.value = 'list'
           await loadArticles()
@@ -242,12 +362,27 @@ createApp({
       articles,
       otherArticles,
       currentArticle,
+      deleteDialog,
+      articleToDelete,
+      deleting,
+      deleteError,
+      confirmDelete,
+      cancelDelete,
+      deleteArticle,
       loading,
       saving,
       error,
       submitError,
       draft,
       newArticle,
+      metadata,
+      comments,
+      commentsUnavailable,
+      newComment,
+      postingComment,
+      commentError,
+      commentSuccess,
+      postComment,
       getArticleUrl,
       getArticleLink,
       getEditLink,

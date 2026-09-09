@@ -19,6 +19,7 @@
 
         <nav aria-label="Main navigation">
           <a href="#/">Articles</a>
+          <a href="#/comments">Comments</a>
 
           <!-- v-if displays this link only when the create feature is enabled. -->
           <a v-if="features.create" class="button button-small" href="#/create">
@@ -93,6 +94,7 @@
                 <h1>{{ currentArticle.name }}</h1>
               </div>
 
+              <div class="form-actions">
               <!-- This button stays hidden until the edit feature is enabled. -->
               <a
                 v-if="features.edit"
@@ -101,13 +103,26 @@
               >
                 Edit
               </a>
+              <button class="button button-danger" type="button" @click="confirmDelete">
+                Delete
+              </button>
+              </div>
             </div>
 
             <!--
               v-html inserts the HTML already rendered from Markdown by FastAPI.
               Only display content controlled by the backend here.
             -->
+            <div class="article-metadata">
+              <p v-if="currentArticle.author">By {{ currentArticle.author }}</p>
+              <p v-if="currentArticle.category">Category: {{ currentArticle.category }}</p>
+              <p v-if="currentArticle.tags?.length">Tags: {{ currentArticle.tags.join(', ') }}</p>
+            </div>
             <div class="article-content" v-html="currentArticle.content"></div>
+            <article-metadata-guide
+              :article="currentArticle"
+              @retry="loadCurrentPage"
+            ></article-metadata-guide>
           </article>
 
           <!-- Secondary navigation displayed next to the article. -->
@@ -134,6 +149,20 @@
 
           <!-- @submit.prevent avoids a reload and calls createArticle(). -->
           <form class="article-form" @submit.prevent="createArticle">
+            <!-- Optional metadata; tags are separated with commas. -->
+            <label>
+              Author (optional)
+              <input v-model.trim="metadata.author" />
+            </label>
+            <label>
+              Category (optional)
+              <input v-model.trim="metadata.category" />
+            </label>
+            <label>
+              Tags (optional)
+              <input v-model="metadata.tags" placeholder="Python, Web" />
+              <small>Separate tags with commas.</small>
+            </label>
             <label>
               Name
 
@@ -175,6 +204,20 @@
 
           <!-- The form calls saveArticle() without reloading the page. -->
           <form class="article-form" @submit.prevent="saveArticle">
+            <!-- Optional metadata; tags are separated with commas. -->
+            <label>
+              Author (optional)
+              <input v-model.trim="metadata.author" />
+            </label>
+            <label>
+              Category (optional)
+              <input v-model.trim="metadata.category" />
+            </label>
+            <label>
+              Tags (optional)
+              <input v-model="metadata.tags" placeholder="Python, Web" />
+              <small>Separate tags with commas.</small>
+            </label>
             <label>
               Markdown content
               <textarea v-model="draft" required rows="20"></textarea>
@@ -197,7 +240,62 @@
             </div>
           </form>
         </section>
+        <!-- Site-wide discussion: comments are plain text, not HTML. -->
+        <comments-guide
+          v-else-if="page === 'comments' &amp;&amp; commentsUnavailable"
+          @retry="loadCurrentPage"
+        ></comments-guide>
+        <section v-else-if="page === 'comments'" class="form-page">
+          <h1>Comments</h1>
+          <p class="intro">A space for feedback and discussion about the whole site.</p>
+          <button class="button button-secondary refresh-button" type="button" @click="loadCurrentPage">
+            Refresh comments
+          </button>
+
+          <ul v-if="comments.length" class="comment-list">
+            <li v-for="comment in comments" :key="comment.id" class="comment">
+              <strong>{{ comment.author || 'Anonymous' }}</strong>
+              <p>{{ comment.content }}</p>
+            </li>
+          </ul>
+          <p v-else class="message">No comments yet.</p>
+
+          <h2>Leave a comment</h2>
+          <form class="article-form" @submit.prevent="postComment">
+            <label>
+              Author (optional)
+              <input v-model.trim="newComment.author" :disabled="postingComment" />
+            </label>
+            <label>
+              Comment
+              <textarea v-model="newComment.content" required rows="5" :disabled="postingComment"></textarea>
+            </label>
+            <p v-if="commentError" class="message message-error" role="alert">{{ commentError }}</p>
+            <p v-if="commentSuccess" class="message" role="status">{{ commentSuccess }}</p>
+            <div class="form-actions">
+              <button class="button" type="submit" :disabled="postingComment">
+                {{ postingComment ? 'Posting…' : 'Post comment' }}
+              </button>
+            </div>
+          </form>
+        </section>
       </main>
+      <!-- Native dialog provides modal focus handling and keyboard support. -->
+      <dialog ref="deleteDialog" aria-labelledby="delete-title" @cancel.prevent="cancelDelete">
+        <h2 id="delete-title">{{ deleteError ? 'Deletion could not be completed' : 'Delete article?' }}</h2>
+        <delete-article-guide v-if="deleteError" :error="deleteError"></delete-article-guide>
+        <p v-else>Move “{{ articleToDelete?.name }}” to trash? Its file will be kept and can be restored later.</p>
+        <p v-if="deleting" role="status">Deleting…</p>
+        <div class="form-actions">
+          <button class="button button-secondary" type="button" autofocus
+            :disabled="deleting" @click="cancelDelete">{{ deleteError ? 'Close' : 'Cancel' }}</button>
+          <button v-if="!deleteError" class="button button-danger" type="button"
+            :disabled="deleting" @click="deleteArticle">
+            {{ deleting ? 'Deleting…' : 'Delete article' }}
+          </button>
+        </div>
+      </dialog>
+      <api-console></api-console>
     </div>
 
     <!--
@@ -206,7 +304,11 @@
     -->
     <script src="vendor/vue.global.prod.js"></script>
     <script src="config.js"></script>
+    <script src="api-console.js"></script>
     <script src="api.js"></script>
+    <script src="comments-guide.js"></script>
+    <script src="article-metadata-guide.js"></script>
+    <script src="delete-article-guide.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

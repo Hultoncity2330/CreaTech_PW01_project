@@ -9,6 +9,9 @@ manager, build step, or frontend server to configure.
 
 ## Running the project
 
+See [Backend tutorials](BACKEND_TUTORIALS.md) for the metadata and comments
+exercises, including Python examples for JSON and file handling.
+
 1. Start the FastAPI backend at `http://127.0.0.1:8000`.
 2. Open `index.html` in a browser.
 
@@ -138,6 +141,89 @@ Request body:
 The frontend derives `article_url` from the article name. Any successful `2xx`
 response redirects the user back to the article page.
 
+### Optional metadata
+
+Creation and editing also accept `author` and `category` as strings, and `tags`
+as an array of strings:
+
+```json
+{
+  "author": "Alex",
+  "category": "Programming",
+  "tags": ["Python", "Web"]
+}
+```
+
+These fields are optional. Existing articles without them still work. The forms
+send empty strings and an empty array when left blank; on editing, these values
+clear existing metadata. The backend should store these fields and return them
+with the article so they can be displayed and edited. Tags are entered as a
+comma-separated list in the interface.
+
+Store metadata as a single JSON object on the first line of each Markdown file:
+
+```text
+{"author": "Alex", "tags": ["Python", "Web"], "category": "Programming"}
+
+# My article
+
+Article content.
+```
+
+When reading, extract the JSON line and return its fields with the article.
+Only the remaining Markdown is converted to HTML (`content`) or returned for
+editing (`source`). When saving, write the JSON line followed by a newline and
+the Markdown body. For older files whose first line is not a JSON object, treat
+the entire file as Markdown with empty metadata.
+
+## Delete an article
+
+The Delete button opens a confirmation dialog. Confirming sends
+`GET /article/{article_url}/delete` using the article URL returned by the API.
+Canceling sends no request. The backend moves the article file into `./trash` and returns
+a JSON confirmation such as `{"deleted": true}`, or an empty successful response.
+The frontend then opens the article list and reloads it.
+
+Assume `./trash` already exists. If the destination file exists, delete that
+old copy with `Path.unlink()`, then move the article with
+`source.rename(destination)`. The whole file moves, including its metadata.
+Only active articles belong in `GET /list`.
+
+If the request fails, the confirmation dialog displays a short backend implementation
+guide from `delete-article-guide.js`. Retrying requires confirmation again.
+
+## Site comments
+
+If a comments request returns `404` or `405`, the page displays a backend
+implementation guide instead of the discussion. “Check backend again” retries
+the GET route. Network errors and server failures keep their normal error messages.
+The guide lives in `comments-guide.js`, a standalone Vue component.
+
+The `#/comments` page is a site-wide discussion, independent of articles.
+Comments load on entry and can be refreshed manually.
+
+`GET /comments` returns an array in display order (oldest first):
+
+```json
+[
+  { "id": 1, "author": "Alex", "content": "Thanks for the articles!" }
+]
+```
+
+`POST /comments` receives:
+
+```json
+{ "author": "Alex", "content": "Thanks for the articles!" }
+```
+
+The backend stores the comment and returns the stored object with a unique
+`id` (number or string), preferably with status `201`. The frontend appends
+this response and clears the form. Content is required; the author is optional.
+An empty, missing or null author displays as “Anonymous”.
+
+Comments are plain text, not HTML or Markdown. The backend must implement both
+routes; comments have no article identifier.
+
 ## CORS
 
 An HTML file opened directly has a `null` origin. The following FastAPI setup is
@@ -168,12 +254,17 @@ simplefront/
 └── vendor/         # Local Vue 3 distribution
 ```
 
-`api.js` exposes four operations to the Vue application: `list`, `get`, `create`,
-and `update`. The application uses hash-based URLs such as
+`api.js` exposes article operations and the `listComments` and `createComment`
+methods. The application uses hash-based URLs such as
 `#/article/My_article`, so direct navigation and browser refreshes work without
 server-side routing.
 
 ## Troubleshooting
+
+Use the **Console** button at the bottom of the page to inspect API traffic.
+Expand a request to read the sent and received bodies. The panel keeps the last
+50 requests, including failures, until you clear it or reload the browser.
+Its display and shared request log live in `api-console.js`.
 
 - Open the browser console to inspect every API request and response status.
 - If FastAPI logs `200` but the frontend reports a network error, check the CORS
