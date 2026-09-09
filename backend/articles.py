@@ -47,3 +47,19 @@ def post_new_article(new_article: NewArticle) -> ArticleInfo:
         name = name,
         articleUrl = name
     )
+
+
+def edit_article(article_name: str, content: str) -> ArticleInfo:
+    article_path = ARTICLES_FOLDER / f"{article_name}.md"
+    
+    if not article_path.exists():
+        raise FileNotFoundError(article_name)
+
+    article_path.write_text(content, encoding="utf-8")
+
+    return ArticleInfo(
+        name = article_name,
+        articleUrl = article_name
+    )
+
+

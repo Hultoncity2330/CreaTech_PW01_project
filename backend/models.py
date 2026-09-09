@@ -17,3 +17,6 @@ class NewArticle(BaseModel):
     name: str = Field(min_length = 1, max_length = 64)
     content: str = Field(min_length = 1, max_length = 10000)
 
+
+class EditArticle(BaseModel):
+    content: str = Field(min_length = 1, max_length = 10000)
