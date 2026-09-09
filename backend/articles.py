@@ -11,7 +11,7 @@ def get_list_articles() -> list[ArticleInfo]:
     for file in ARTICLES_FOLDER.glob("*.md"):
         articles.append(ArticleInfo(
             name = file.stem,
-            articleUrl = f"/article/{file.stem}"
+            articleUrl = file.stem
         ))
     
     return articles
@@ -45,5 +45,5 @@ def post_new_article(new_article: NewArticle) -> ArticleInfo:
 
     return ArticleInfo(
         name = name,
-        articleUrl = f"/article/{name}"
+        articleUrl = name
     )
