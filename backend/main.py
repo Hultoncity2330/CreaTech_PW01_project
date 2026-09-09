@@ -36,7 +36,7 @@ def list_articles() -> list[ArticleInfo]:
 @app.get("/article/{article_name}")
 def read_article(article_name: str) -> Article:
     try:
-        markdown_content, html_content = get_article_content(article_name)
+        metadata, markdown_content, html_content = get_article_content(article_name)
     
     except FileNotFoundError:
         raise HTTPException(404, "This article doesn't exist.")
@@ -45,7 +45,10 @@ def read_article(article_name: str) -> Article:
         name = article_name,
         articleUrl = f"{article_name}",
         content = html_content,
-        source = markdown_content
+        source = markdown_content,
+        author = metadata.get("author"),
+        category = metadata.get("category"),
+        tags = metadata.get("tags", [])
     )
 
 
