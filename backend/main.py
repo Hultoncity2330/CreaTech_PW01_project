@@ -43,7 +43,7 @@ def read_article(article_name: str) -> Article:
     
     return Article(
         name = article_name,
-        articleUrl = f"/article/{article_name}",
+        articleUrl = f"{article_name}",
         content = html_content,
         source = markdown_content
     )
@@ -61,7 +61,7 @@ def create_article(new_article: NewArticle) -> ArticleInfo:
         raise HTTPException(400, "This name is invalid")
 
 
-@app.post("/edit")
+@app.post("/article/{article_name}/edit")
 def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
     try:
         return edit_article(article_name, article.content)
@@ -70,11 +70,11 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
             raise HTTPException(404, "This article doesn't exist.")
 
 
-@app.delete("/article/{article_name}")
+@app.get("/article/{article_name}/delete")
 def delete_article_route(article_name: str) -> DeleteArticle:
     try:
         delete_article(article_name)
-        return DeleteArticle(message = "Article deleted successfully.")
+        return DeleteArticle(message = "Article moved to trash successfully.")
 
     except FileNotFoundError:
         raise HTTPException(404, "This article doesn't exist.")

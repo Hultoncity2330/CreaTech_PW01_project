@@ -3,6 +3,7 @@ from models import ArticleInfo, NewArticle
 import markdown2
 
 ARTICLES_FOLDER = Path(__file__).parent.parent / "articles"
+TRASH_FOLDER = Path(__file__).parent.parent / "trash"
 
 
 #--------------------------------------------------#
@@ -68,10 +69,17 @@ def edit_article(article_name: str, content: str) -> ArticleInfo:
 
 def delete_article(article_name):
     article_path = ARTICLES_FOLDER / f"{article_name}.md"
+    trash_path = TRASH_FOLDER / f"{article_name}.md"
 
     if not article_path.exists():
         raise FileNotFoundError(article_name)
 
-    article_path.unlink()
+    TRASH_FOLDER.mkdir(exist_ok = True)
+
+    if trash_path.exists():
+        trash_path.unlink()
+
+    article_path.rename(trash_path)
+
 
 
