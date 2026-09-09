@@ -26,7 +26,10 @@ class NewArticle(BaseModel):
 
 
 class EditArticle(BaseModel):
-    content: str = Field(min_length = 1, max_length = 10000)
+    content: str | None = Field(min_length = 1, max_length = 10000)
+    author: str | None = None
+    category: str | None = None
+    tags: list[str] | None = None
 
 
 class DeleteArticle(BaseModel):

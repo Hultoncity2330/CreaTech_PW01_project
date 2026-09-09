@@ -67,7 +67,7 @@ def create_article(new_article: NewArticle) -> ArticleInfo:
 @app.post("/article/{article_name}/edit")
 def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
     try:
-        return edit_article(article_name, article.content)
+        return edit_article(article_name, article)
     
     except FileNotFoundError:
             raise HTTPException(404, "This article doesn't exist.")

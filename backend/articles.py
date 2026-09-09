@@ -1,5 +1,5 @@
 from pathlib import Path
-from models import ArticleInfo, NewArticle
+from models import ArticleInfo, EditArticle, NewArticle
 import markdown2
 import json
 
@@ -102,13 +102,35 @@ def post_new_article(new_article: NewArticle) -> ArticleInfo:
     )
 
 
-def edit_article(article_name: str, content: str) -> ArticleInfo:
+def edit_article(article_name: str, article: EditArticle) -> ArticleInfo:
     article_path = ARTICLES_FOLDER / f"{article_name}.md"
     
     if not article_path.exists():
         raise FileNotFoundError(article_name)
 
-    article_path.write_text(content, encoding="utf-8")
+    metadata, markdown_content = read_article_file(article_path)
+
+    updates = article.model_dump(exclude_unset = True)
+
+    if "content" in updates:
+        markdown_content = updates["content"]
+
+    if "author" in updates:
+        metadata["author"] = updates["author"]
+
+    if "category" in updates:
+        metadata["category"] = updates["category"]
+
+    if "tags" in updates:
+        metadata["tags"] = updates["tags"]
+
+    write_article_file(
+        article_path,
+        markdown_content,
+        metadata.get("author"),
+        metadata.get("category"),
+        metadata.get("tags", []),
+    )
 
     return ArticleInfo(
         name = article_name,
