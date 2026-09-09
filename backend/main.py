@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import Article, ArticleInfo, NewArticle
-from articles import get_article_content, get_list_articles, post_article
+from articles import get_article_content, get_list_articles, post_new_article
 
 
 app = FastAPI()
@@ -26,13 +26,12 @@ def add10(number):
 
 
 @app.get("/list")
-def list_articles() -> list[dict[str, str]]:
-    articles = get_list_articles()
-    return articles
+def list_articles() -> list[ArticleInfo]:
+    return get_list_articles()
 
 
 @app.get("/article/{article_name}")
-def get_article(article_name: str) -> Article:
+def read_article(article_name: str) -> Article:
     try:
         markdown_content, html_content = get_article_content(article_name)
     except FileNotFoundError:
@@ -47,9 +46,13 @@ def get_article(article_name: str) -> Article:
 
 
 @app.post("/create")
-def create_article(new_article: NewArticle):
+def create_article(new_article: NewArticle) -> ArticleInfo:
     try:
-        return post_article(new_article)
-    except FileNotFoundError:
-        raise HTTPException(404, "This article doesn't exist.")
+        return post_new_article(new_article)
+
+    except FileExistsError:
+        raise HTTPException(400, "An article with this name already exists")
+
+    except ValueError:
+        raise HTTPException(400, "This name is invalid")
 
