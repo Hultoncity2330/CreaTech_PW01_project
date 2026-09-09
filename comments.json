@@ -5,8 +5,13 @@
         "content": "First comment !"
     },
     {
-        "id": "e0a222fd-04f2-4015-ad97-2874df34441a",
-        "author": "Ryan",
-        "content": "First comment !"
+        "id": "531ae90f-cc39-4805-bb0d-8f16cad235da",
+        "author": "",
+        "content": "This is an anonymous comment !"
+    },
+    {
+        "id": "3f290ca4-18f4-4c47-a793-03f52d35c56b",
+        "author": "Test",
+        "content": "This is a test"
     }
 ]

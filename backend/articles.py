@@ -152,4 +152,3 @@ def delete_article(article_name):
 
     article_path.rename(trash_path)
 
-

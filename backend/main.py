@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article, ArticleInfo, NewArticle, EditArticle, DeleteArticle, Comment, NewComment
+from models import Article, ArticleInfo, DeleteComment, NewArticle, EditArticle, DeleteArticle, Comment, NewComment, EditComment, DeleteComment
 from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article
-from comments import get_comments, add_comment
+from comments import get_comments, add_comment, edit_comment, delete_comment
 
 
 app = FastAPI()
@@ -75,7 +75,7 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
 
 
 @app.delete("/article/{article_name}/delete")
-def delete_article_route(article_name: str) -> DeleteArticle:
+def remove_article(article_name: str) -> DeleteArticle:
     try:
         delete_article(article_name)
         return DeleteArticle(message = "Article moved to trash successfully.")
@@ -99,4 +99,27 @@ def create_comment(new_comment: NewComment) -> Comment:
 
     except ValueError:
         raise HTTPException(400, "The comment cannot be empty.")
+
+
+@app.post("/comments/{comment_id}/edit")
+def update_comment(comment_id: str, edit: EditComment) -> Comment:
+    try:
+        return edit_comment(comment_id, edit)
+
+    except FileNotFoundError:
+        raise HTTPException(404, "This comment doesn't exist.")
+
+    except ValueError:
+        raise HTTPException(400, "The comment cannot be empty.")
+
+
+@app.delete("/comments/{comment_id}")
+def remove_comment(comment_id: str) -> DeleteComment:
+    try:
+        delete_comment(comment_id)
+
+        return DeleteComment(message = "Comment deleted successfully.")
+
+    except FileNotFoundError:
+        raise HTTPException(404, "This comment doesn't exist.")
 

@@ -53,3 +53,11 @@ class NewComment(BaseModel):
     content: str = Field(min_length = 1, max_length = 1000)
 
 
+class EditComment(BaseModel):
+    author: str | None = None
+    content: str | None = Field(default = None, min_length = 1, max_length = 1000)
+
+
+class DeleteComment(BaseModel):
+    message: str
+

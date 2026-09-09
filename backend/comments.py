@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 import uuid
 
-from models import Comment, NewComment
+from models import Comment, NewComment, EditComment
 
 COMMENTS_FILE = Path(__file__).parent.parent / "comments.json"
 
@@ -62,3 +62,43 @@ def add_comment(new_comment: NewComment) -> Comment:
     save_comments(comments)
 
     return comment
+
+
+def edit_comment(comment_id: str, edit: EditComment) -> Comment:
+    """Edit an existing comment."""
+
+    comments = get_comments()
+
+    for comment in comments:
+        if comment.id == comment_id:
+            updates = edit.model_dump(exclude_unset=True)
+
+            if "author" in updates:
+                comment.author = updates["author"]
+
+            if "content" in updates:
+                if not updates["content"].strip():
+                    raise ValueError("The comment cannot be empty")
+
+                comment.content = updates["content"]
+
+            save_comments(comments)
+            return comment
+
+    raise FileNotFoundError(comment_id)
+
+
+def delete_comment(comment_id: str) -> None:
+    """Delete an existing comment."""
+
+    comments = get_comments()
+
+    for comment in comments:
+        if comment.id == comment_id:
+            comments.remove(comment)
+            save_comments(comments)
+            return
+
+    raise FileNotFoundError(comment_id)
+
+
