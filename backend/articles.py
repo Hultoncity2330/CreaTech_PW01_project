@@ -5,6 +5,9 @@ import markdown2
 ARTICLES_FOLDER = Path(__file__).parent.parent / "articles"
 
 
+#--------------------------------------------------#
+
+
 def get_list_articles() -> list[ArticleInfo]:
     articles: list[ArticleInfo] = []
 

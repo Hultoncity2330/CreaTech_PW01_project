@@ -25,3 +25,7 @@ class EditArticle(BaseModel):
 class DeleteArticle(BaseModel):
     message: str
 
+
+#--------------------------------------------------#
+
+
