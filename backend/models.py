@@ -20,3 +20,8 @@ class NewArticle(BaseModel):
 
 class EditArticle(BaseModel):
     content: str = Field(min_length = 1, max_length = 10000)
+
+
+class DeleteArticle(BaseModel):
+    message: str
+

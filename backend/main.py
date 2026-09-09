@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article, ArticleInfo, NewArticle, EditArticle
-from articles import get_article_content, get_list_articles, post_new_article, edit_article
+from models import Article, ArticleInfo, NewArticle, EditArticle, DeleteArticle
+from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article
 
 
 app = FastAPI()
@@ -66,4 +66,13 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
     except FileNotFoundError:
             raise HTTPException(404, "This article doesn't exist.")
 
+
+@app.delete("/article/{article_name}")
+def delete_article_route(article_name: str) -> DeleteArticle:
+    try:
+        delete_article(article_name)
+        return DeleteArticle(message = "Article deleted successfully.")
+
+    except FileNotFoundError:
+        raise HTTPException(404, "This article doesn't exist.")
 

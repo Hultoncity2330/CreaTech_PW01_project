@@ -63,3 +63,12 @@ def edit_article(article_name: str, content: str) -> ArticleInfo:
     )
 
 
+def delete_article(article_name):
+    article_path = ARTICLES_FOLDER / f"{article_name}.md"
+
+    if not article_path.exists():
+        raise FileNotFoundError(article_name)
+
+    article_path.unlink()
+
+
