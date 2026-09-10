@@ -101,7 +101,7 @@ def restore_article_route(article_name: str) -> RestoreArticle:
 
     try:
         restore_article(article_name)
-        return RestoreArticle(message = "Article restored succesfully.")
+        return RestoreArticle(message = "Article restored successfully.")
 
     except FileNotFoundError:
         raise HTTPException(404, "This article doesn't exist in trash.")
