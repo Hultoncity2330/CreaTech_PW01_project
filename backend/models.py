@@ -32,7 +32,7 @@ class NewArticle(BaseModel):
 
 class EditArticle(BaseModel):
     """Represent the optional data used to update an existing article."""
-    content: str | None = Field(min_length = 1, max_length = 10000)
+    content: str | None = Field(default = None, min_length = 1, max_length = 10000)
     author: str | None = None
     category: str | None = None
     tags: list[str] | None = None
