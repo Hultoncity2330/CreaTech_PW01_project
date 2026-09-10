@@ -11,6 +11,8 @@ TRASH_FOLDER = Path(__file__).parent.parent / "trash"
 
 
 def get_list_articles() -> list[ArticleInfo]:
+    """Return the list of all available Markdown articles."""
+
     articles: list[ArticleInfo] = []
 
     for file in ARTICLES_FOLDER.glob("*.md"):
@@ -23,6 +25,8 @@ def get_list_articles() -> list[ArticleInfo]:
 
 
 def get_article_content(article_name: str) -> tuple[dict, str, str]:
+    """Read an article and return its metadata, Markdown source and HTML content."""
+
     article_path = ARTICLES_FOLDER / f"{article_name}.md"
 
     if not article_path.exists():
@@ -35,6 +39,8 @@ def get_article_content(article_name: str) -> tuple[dict, str, str]:
 
 
 def read_article_file(article_path: Path) -> tuple[dict, str]:
+    """Read an article file and separate its JSON metadata from its Markdown content."""
+
     file_content = article_path.read_text(encoding="utf-8")
     first_line, separator, remaining_content = file_content.partition("\n")
 
@@ -58,6 +64,7 @@ def write_article_file(
         category: str | None,
         tags: list[str],
     ) -> None:
+    """Write article metadata and Markdown content to an article file."""
 
     metadata = {
         "author": author,
@@ -77,6 +84,8 @@ def write_article_file(
 
 
 def post_new_article(new_article: NewArticle) -> ArticleInfo:
+    """Create a new article and save it in the articles directory."""
+
     name = new_article.name
     content = new_article.content
 
@@ -103,6 +112,8 @@ def post_new_article(new_article: NewArticle) -> ArticleInfo:
 
 
 def edit_article(article_name: str, article: EditArticle) -> ArticleInfo:
+    """Update the content and metadata of an existing article."""
+
     article_path = ARTICLES_FOLDER / f"{article_name}.md"
     
     if not article_path.exists():
@@ -138,7 +149,9 @@ def edit_article(article_name: str, article: EditArticle) -> ArticleInfo:
     )
 
 
-def delete_article(article_name):
+def delete_article(article_name: str) -> None:
+    """Move an existing article from the articles directory to the trash directory."""
+
     article_path = ARTICLES_FOLDER / f"{article_name}.md"
     trash_path = TRASH_FOLDER / f"{article_name}.md"
 

@@ -13,5 +13,10 @@
         "id": "3f290ca4-18f4-4c47-a793-03f52d35c56b",
         "author": "Test",
         "content": "This is a test"
+    },
+    {
+        "id": "bca9b058-27c7-485a-9036-6a001ccd2993",
+        "author": "Test02",
+        "content": "It works, that's perfect !"
     }
 ]

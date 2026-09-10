@@ -27,7 +27,7 @@ def get_comments() -> list[Comment]:
 
 
 def save_comments(comments: list[Comment]) -> None:
-    """Save all comments to comments.json."""
+    """Save the complete list of comments to `comments.json`."""
 
     data = [
         comment.model_dump()
@@ -45,7 +45,7 @@ def save_comments(comments: list[Comment]) -> None:
 
 
 def add_comment(new_comment: NewComment) -> Comment:
-    """Create and save a new comment."""
+    """Create and save a new comment with a unique identifier."""
 
     if not new_comment.content.strip():
         raise ValueError("The comment cannot be empty")
@@ -65,7 +65,7 @@ def add_comment(new_comment: NewComment) -> Comment:
 
 
 def edit_comment(comment_id: str, edit: EditComment) -> Comment:
-    """Edit an existing comment."""
+    """Edit an existing comment with his ID."""
 
     comments = get_comments()
 
@@ -89,7 +89,7 @@ def edit_comment(comment_id: str, edit: EditComment) -> Comment:
 
 
 def delete_comment(comment_id: str) -> None:
-    """Delete an existing comment."""
+    """Delete an existing comment with his ID."""
 
     comments = get_comments()
 

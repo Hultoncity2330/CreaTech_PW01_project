@@ -21,21 +21,26 @@ app.add_middleware(
 
 @app.get("/")
 def root() -> dict[str, str]:
+    """Return a simple message confirming that the API is running."""
     return {"message": "It works !"}
 
 
 @app.get("/add10/{number}")
-def add10(number):
+def add10(number: int) -> int:
+    """Return the given number increased by ten."""
     return int(number) + 10
 
 
 @app.get("/list")
 def list_articles() -> list[ArticleInfo]:
+    """Return the list of all available articles."""
     return get_list_articles()
 
 
 @app.get("/article/{article_name}")
 def read_article(article_name: str) -> Article:
+    """Return an article with its metadata, Markdown source and HTML content."""
+
     try:
         metadata, markdown_content, html_content = get_article_content(article_name)
     
@@ -55,6 +60,8 @@ def read_article(article_name: str) -> Article:
 
 @app.post("/create")
 def create_article(new_article: NewArticle) -> ArticleInfo:
+    """Create a new article from validated request data."""
+
     try:
         return post_new_article(new_article)
 
@@ -67,6 +74,8 @@ def create_article(new_article: NewArticle) -> ArticleInfo:
 
 @app.post("/article/{article_name}/edit")
 def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
+    """Update the content or metadata of an existing article."""
+
     try:
         return edit_article(article_name, article)
     
@@ -76,6 +85,8 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
 
 @app.delete("/article/{article_name}/delete")
 def remove_article(article_name: str) -> DeleteArticle:
+    """Move an existing article to the trash directory."""
+
     try:
         delete_article(article_name)
         return DeleteArticle(message = "Article moved to trash successfully.")
@@ -89,11 +100,14 @@ def remove_article(article_name: str) -> DeleteArticle:
 
 @app.get("/comments")
 def list_comments() -> list[Comment]:
+    """Return all the comments stored by the application."""
     return get_comments()
 
 
 @app.post("/comments")
 def create_comment(new_comment: NewComment) -> Comment:
+    """Create and return a new comment."""
+
     try:
         return add_comment(new_comment)
 
@@ -103,6 +117,8 @@ def create_comment(new_comment: NewComment) -> Comment:
 
 @app.post("/comments/{comment_id}/edit")
 def update_comment(comment_id: str, edit: EditComment) -> Comment:
+    """Update and return an existing comment identified by its ID."""
+
     try:
         return edit_comment(comment_id, edit)
 
@@ -115,6 +131,8 @@ def update_comment(comment_id: str, edit: EditComment) -> Comment:
 
 @app.delete("/comments/{comment_id}")
 def remove_comment(comment_id: str) -> DeleteComment:
+    """Delete a comment identified by its ID."""
+
     try:
         delete_comment(comment_id)
 
