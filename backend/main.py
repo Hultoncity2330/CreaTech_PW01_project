@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article, ArticleInfo, DeleteComment, NewArticle, EditArticle, DeleteArticle, RestoreArticle, Comment, NewComment, EditComment, DeleteComment
+from models import Article, ArticleInfo, NewArticle, EditArticle, DeleteArticle, RestoreArticle, Comment, NewComment, EditComment, DeleteComment
 from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article, restore_article
 from comments import get_comments, add_comment, edit_comment, delete_comment
 
@@ -83,7 +83,7 @@ def update_article(article_name: str, article: EditArticle) -> ArticleInfo:
             raise HTTPException(404, "This article doesn't exist.")
 
 
-@app.delete("/article/{article_name}/delete")
+@app.get("/article/{article_name}/delete")
 def remove_article(article_name: str) -> DeleteArticle:
     """Move an existing article to the trash directory."""
 
