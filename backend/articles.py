@@ -1,5 +1,5 @@
 from pathlib import Path
-from models import ArticleInfo, EditArticle, NewArticle
+from models import ArticleInfo, EditArticle, NewArticle, RestoreArticle
 import markdown2
 import json
 
@@ -164,4 +164,20 @@ def delete_article(article_name: str) -> None:
         trash_path.unlink()
 
     article_path.rename(trash_path)
+
+
+def restore_article(article_name: str) -> None:
+    """Restore an article from the trash directory."""
+
+    trash_path = TRASH_FOLDER / f"{article_name}.md"
+    article_path = ARTICLES_FOLDER / f"{article_name}.md"
+
+    if not trash_path.exists():
+        raise FileNotFoundError(article_name)
+
+    if article_path.exists():
+        raise FileExistsError(article_name)
+
+    trash_path.rename(article_path)
+
 

@@ -43,6 +43,11 @@ class DeleteArticle(BaseModel):
     message: str
 
 
+class RestoreArticle(BaseModel):
+    """Represent the response returned after restoring an article."""
+    message: str
+
+
 #--------------------------< Comments >------------------------#
 
 
@@ -68,4 +73,5 @@ class EditComment(BaseModel):
 class DeleteComment(BaseModel):
     """Represent the response returned after deleting a comment."""
     message: str
+
 

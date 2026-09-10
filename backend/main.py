@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article, ArticleInfo, DeleteComment, NewArticle, EditArticle, DeleteArticle, Comment, NewComment, EditComment, DeleteComment
-from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article
+from models import Article, ArticleInfo, DeleteComment, NewArticle, EditArticle, DeleteArticle, RestoreArticle, Comment, NewComment, EditComment, DeleteComment
+from articles import get_article_content, get_list_articles, post_new_article, edit_article, delete_article, restore_article
 from comments import get_comments, add_comment, edit_comment, delete_comment
 
 
@@ -95,6 +95,21 @@ def remove_article(article_name: str) -> DeleteArticle:
         raise HTTPException(404, "This article doesn't exist.")
 
 
+@app.post("/article/{article_name}/restore")
+def restore_article_route(article_name: str) -> RestoreArticle:
+    """Restore an article from the trash directory."""
+
+    try:
+        restore_article(article_name)
+        return RestoreArticle(message = "Article restored succesfully.")
+
+    except FileNotFoundError:
+        raise HTTPException(404, "This article doesn't exist in trash.")
+
+    except FileExistsError:
+        raise HTTPException(400, "An article with this name already exists.")
+
+
 #--------------------------< Comments >------------------------#
 
 
@@ -140,4 +155,5 @@ def remove_comment(comment_id: str) -> DeleteComment:
 
     except FileNotFoundError:
         raise HTTPException(404, "This comment doesn't exist.")
+
 
